@@ -1,0 +1,13 @@
+<h1>Support Ticket Management System</h1>
+
+<% if logged_in? %>
+  <h2>Welcome, <%= current_user.name %>!</h2>
+
+  <p>You are logged in as <%= current_user.role %>.</p>
+
+  <%= button_to "Log out", logout_path, method: :delete %>
+<% else %>
+  <p>Please log in to continue.</p>
+
+  <%= link_to "Log in", login_path %>
+<% end %>

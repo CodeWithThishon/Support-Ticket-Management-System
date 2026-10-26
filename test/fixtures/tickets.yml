@@ -1,0 +1,25 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  ticket_number: MyString
+  title: MyString
+  description: MyText
+  requester: one
+  assignee: one
+  priority: MyString
+  status: MyString
+  resolution_summary: MyText
+  resolved_at: 2026-10-26 22:51:56
+  closed_at: 2026-10-26 22:51:56
+
+two:
+  ticket_number: MyString
+  title: MyString
+  description: MyText
+  requester: two
+  assignee: two
+  priority: MyString
+  status: MyString
+  resolution_summary: MyText
+  resolved_at: 2026-10-26 22:51:56
+  closed_at: 2026-10-26 22:51:56

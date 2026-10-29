@@ -1,5 +1,11 @@
 class User < ApplicationRecord
   before_validation :normalize_email
+
+  has_many :requested_tickets, class_name: "Ticket", foreign_key: :requester_id, dependent: :restrict_with_error
+  has_many :assigned_tickets, class_name: "Ticket", foreign_key: :assignee_id, dependent: :nullify
+  has_many :ticket_comments, dependent: :restrict_with_error
+  has_many :ticket_activities, dependent: :restrict_with_error
+
   has_secure_password
   ROLES = %w[requester engineer admin].freeze
 

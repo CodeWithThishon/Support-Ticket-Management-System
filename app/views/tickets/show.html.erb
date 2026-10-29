@@ -1,0 +1,218 @@
+
+<h1><%= @ticket.ticket_number %></h1>
+
+<p>
+  <strong>Title:</strong>
+  <%= @ticket.title %>
+</p>
+
+<p>
+  <strong>Description:</strong>
+  <%= @ticket.description %>
+</p>
+
+<p>
+  <strong>Priority:</strong>
+  <%= @ticket.priority.titleize %>
+</p>
+
+<p>
+  <strong>Status:</strong>
+  <%= @ticket.status.titleize %>
+</p>
+
+<p>
+  <strong>Requester:</strong>
+  <%= @ticket.requester.name %>
+</p>
+
+<p>
+  <strong>Assignee:</strong>
+  <%= @ticket.assignee&.name || "Unassigned" %>
+</p>
+
+
+<% if current_user.role == "admin" %>
+  <hr>
+
+  <h3>Update Ticket Priority</h3>
+
+  <%= form_with url: update_priority_ticket_path(@ticket),
+                method: :patch,
+                local: true do |f| %>
+
+    <div>
+      <%= label_tag :priority, "Select Priority" %>
+
+      <%= select_tag :priority,
+                     options_for_select(
+                       [
+                         ["Low", "low"],
+                         ["Medium", "medium"],
+                         ["High", "high"],
+                         ["Critical", "critical"]
+                       ],
+                       @ticket.priority
+                     ) %>
+    </div>
+
+    <%= f.submit "Update Priority" %>
+  <% end %>
+<% end %>
+
+
+<% if current_user.role == "admin" %>
+  <hr>
+
+  <h3>Assign Ticket</h3>
+
+  <%= form_with url: assign_ticket_path(@ticket),
+                method: :patch,
+                local: true do |f| %>
+
+    <div>
+      <%= label_tag :assignee_id, "Select Engineer" %>
+
+      <%= select_tag :assignee_id,
+                     options_from_collection_for_select(
+                       User.where(role: "engineer").order(:name),
+                       :id,
+                       :name,
+                       @ticket.assignee_id
+                     ),
+                     include_blank: "Unassigned" %>
+    </div>
+
+    <%= f.submit "Update Assignment" %>
+  <% end %>
+<% end %>
+
+<%
+  status_options = case current_user.role
+                   when "admin"
+                     @ticket.status == "resolved" ? [["Closed", "closed"]] : []
+                   when "engineer"
+                     if @ticket.assignee_id == current_user.id
+                       case @ticket.status
+                       when "open"
+                         [["In Progress", "in_progress"]]
+                       when "in_progress"
+                         [["Resolved", "resolved"]]
+                       else
+                         []
+                       end
+                     else
+                       []
+                     end
+                   when "requester"
+                     if @ticket.requester_id == current_user.id &&
+                        @ticket.status == "resolved"
+                       [["Reopen", "open"], ["Closed", "closed"]]
+                     else
+                       []
+                     end
+                   else
+                     []
+                   end
+%>
+
+<% if status_options.any? %>
+  <hr>
+
+  <h3>Update Ticket Status</h3>
+
+  <%= form_with url: update_status_ticket_path(@ticket),
+                method: :patch,
+                local: true do |f| %>
+
+    <div>
+      <%= label_tag :status, "Select Status" %>
+
+      <%= select_tag :status,
+                     options_for_select(status_options),
+                     required: true %>
+    </div>
+
+    <% if current_user.role == "engineer" &&
+          @ticket.assignee_id == current_user.id &&
+          @ticket.status == "in_progress" %>
+      <div>
+        <%= label_tag :resolution_summary, "Resolution Summary" %>
+
+        <%= text_area_tag :resolution_summary,
+                          @ticket.resolution_summary %>
+      </div>
+    <% end %>
+
+    <%= f.submit "Update Status" %>
+  <% end %>
+<% end %>
+
+
+
+
+<hr>
+
+<%= link_to "Back to Tickets", tickets_path %>
+
+<% if current_user.role == "requester" %>
+  <%= link_to "Create Another Ticket", new_ticket_path %>
+
+
+  <p>
+    <strong>Resolution Summary:</strong>
+    <%= @ticket.resolution_summary.presence || "Not resolved yet" %>
+  </p>
+
+<% end %>
+
+<hr>
+
+<h2>Ticket Activity History</h2>
+
+<% @ticket.ticket_activities.includes(:user).order(:created_at).each do |activity| %>
+  <div>
+    <strong><%= activity.user.name %></strong>
+
+    <small>
+      <%= activity.created_at.strftime("%d %b %Y, %I:%M %p") %>
+    </small>
+
+    <p>
+      <strong><%= activity.action.titleize %>:</strong>
+      <%= activity.details %>
+    </p>
+  </div>
+<% end %>
+
+<hr>
+
+<h2>Comments</h2>
+
+<% @ticket.ticket_comments.includes(:user).order(:created_at).each do |comment| %>
+  <div>
+    <strong><%= comment.user.name %></strong>
+
+    <small>
+      <%= comment.created_at.strftime("%d %b %Y, %I:%M %p") %>
+    </small>
+
+    <p><%= comment.body %></p>
+  </div>
+<% end %>
+
+<hr>
+
+<h3>Add a Comment</h3>
+
+<%= form_with url: ticket_comments_path(@ticket),
+              scope: :ticket_comment,
+              local: true do |f| %>
+
+  <div>
+    <%= f.label :body, "Your comment" %>
+    <%= f.text_area :body, required: true %>
+  </div>
+
+  <%= f.submit "Add Comment" %>
+<% end %>

@@ -1,0 +1,91 @@
+<h1>Support Tickets</h1>
+
+<% if current_user.role == "requester" %>
+  <%= link_to "Create Ticket", new_ticket_path %>
+<% end %>
+
+<%= form_with url: tickets_path, method: :get, local: true do |f| %>
+  <div>
+    <%= label_tag :search, "Search Ticket" %>
+    <%= text_field_tag :search, params[:search],
+                       placeholder: "Ticket number or title" %>
+  </div>
+
+  <div>
+    <%= label_tag :status, "Status" %>
+    <%= select_tag :status,
+                   options_for_select(
+                     [["All Statuses", ""]] +
+                     Ticket::STATUSES.map { |status| [status.titleize, status] },
+                     params[:status]
+                   ) %>
+  </div>
+
+  <div>
+    <%= label_tag :priority, "Priority" %>
+    <%= select_tag :priority,
+                   options_for_select(
+                     [["All Priorities", ""]] +
+                     Ticket::PRIORITIES.map { |priority| [priority.titleize, priority] },
+                     params[:priority]
+                   ) %>
+  </div>
+
+  <% if current_user.role == "admin" %>
+    <div>
+      <%= label_tag :assignee_id, "Assignee" %>
+      <%= select_tag :assignee_id,
+                     options_from_collection_for_select(
+                       @engineers, :id, :name, params[:assignee_id]
+                     ),
+                     include_blank: "All Engineers" %>
+    </div>
+
+    <div>
+      <%= label_tag :requester_id, "Requester" %>
+      <%= select_tag :requester_id,
+                     options_from_collection_for_select(
+                       @requesters, :id, :name, params[:requester_id]
+                     ),
+                     include_blank: "All Requesters" %>
+    </div>
+
+    <div>
+      <%= check_box_tag :unassigned, "1", params[:unassigned] == "1" %>
+      <%= label_tag :unassigned, "Unassigned Tickets Only" %>
+    </div>
+  <% end %>
+
+  <div>
+    <%= label_tag :sort, "Sort By" %>
+    <%= select_tag :sort,
+                   options_for_select(
+                     [
+                       ["Newest First", "newest"],
+                       ["Oldest First", "oldest"],
+                       ["Priority", "priority"],
+                       ["Recently Updated", "updated"]
+                     ],
+                     params[:sort].presence || "newest"
+                   ) %>
+  </div>
+
+  <%= f.submit "Apply Filters" %>
+  <%= link_to "Clear Filters", tickets_path %>
+<% end %>
+
+<hr>
+
+<% if @tickets.any? %>
+  <% @tickets.each do |ticket| %>
+    <div>
+      <h3><%= link_to ticket.ticket_number, ticket_path(ticket) %></h3>
+      <p><%= ticket.title %></p>
+      <p>Status: <%= ticket.status.titleize %></p>
+      <p>Priority: <%= ticket.priority.titleize %></p>
+    </div>
+    <hr>
+  <% end %>
+<% else %>
+  <p>No tickets found.</p>
+<% end %>

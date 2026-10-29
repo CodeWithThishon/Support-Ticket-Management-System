@@ -10,6 +10,15 @@
   </head>
 
   <body>
+    <div class="container">
+      <% flash.each do |type, message| %>
+        <% alert_class = { "success" => "success", "danger" => "danger", "alert" => "warning", "notice" => "info" }.fetch(type.to_s, "info") %>
+        <div class="alert alert-<%= alert_class %>" role="alert">
+          <%= message %>
+        </div>
+      <% end %>
+
     <%= yield %>
+    </div>
   </body>
 </html>

@@ -1,13 +1,41 @@
-<h1>Support Ticket Management System</h1>
 
-<% if logged_in? %>
-  <h2>Welcome, <%= current_user.name %>!</h2>
+<h1>Support Ticket Dashboard</h1>
 
-  <p>You are logged in as <%= current_user.role %>.</p>
+<div>
+  <h3>Total Tickets</h3>
+  <p><%= @total_tickets %></p>
+</div>
 
-  <%= button_to "Log out", logout_path, method: :delete %>
-<% else %>
-  <p>Please log in to continue.</p>
+<div>
+  <h3>Open Tickets</h3>
+  <p><%= @open_tickets %></p>
+</div>
 
-  <%= link_to "Log in", login_path %>
+<div>
+  <h3>In Progress Tickets</h3>
+  <p><%= @in_progress_tickets %></p>
+</div>
+
+<div>
+  <h3>Resolved Tickets</h3>
+  <p><%= @resolved_tickets %></p>
+</div>
+
+<div>
+  <h3>Closed Tickets</h3>
+  <p><%= @closed_tickets %></p>
+</div>
+
+<div>
+  <h3>Unassigned Tickets</h3>
+  <p><%= @unassigned_tickets %></p>
+</div>
+
+<h2>Tickets Per Engineer</h2>
+
+<% @engineer_ticket_counts.each do |(engineer_id, engineer_name), count| %>
+  <div>
+    <p><%= engineer_name %>: <%= count %> tickets</p>
+  </div>
 <% end %>
+<%= button_to "Log out", logout_path, method: :delete %>

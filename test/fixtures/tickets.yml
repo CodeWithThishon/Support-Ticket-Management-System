@@ -1,25 +1,20 @@
-# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
-  ticket_number: MyString
-  title: MyString
-  description: MyText
-  requester: one
-  assignee: one
-  priority: MyString
-  status: MyString
-  resolution_summary: MyText
-  resolved_at: 2026-10-26 22:51:56
-  closed_at: 2026-10-26 22:51:56
+open_ticket:
+  ticket_number: TKT-TEST001
+  title: Login issue
+  description: Cannot log in to the application.
+  requester: requester
+  assignee: engineer
+  priority: medium
+  status: open
 
-two:
-  ticket_number: MyString
-  title: MyString
-  description: MyText
-  requester: two
-  assignee: two
-  priority: MyString
-  status: MyString
-  resolution_summary: MyText
-  resolved_at: 2026-10-26 22:51:56
-  closed_at: 2026-10-26 22:51:56
+resolved_ticket:
+  ticket_number: TKT-TEST002
+  title: Password issue
+  description: Password reset is not working.
+  requester: requester
+  assignee: engineer
+  priority: high
+  status: resolved
+  resolution_summary: Password reset issue fixed.
+  resolved_at: 2026-10-27 09:35:33

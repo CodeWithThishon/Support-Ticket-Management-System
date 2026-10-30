@@ -74,13 +74,7 @@
       <%= label_tag :assignee_id, "Select Engineer" %>
 
       <%= select_tag :assignee_id,
-                     options_from_collection_for_select(
-                       User.where(role: "engineer").order(:name),
-                       :id,
-                       :name,
-                       @ticket.assignee_id
-                     ),
-                     include_blank: "Unassigned" %>
+                     options_from_collection_for_select(@engineers, :id, :name, @ticket.assignee_id)%>
     </div>
 
     <%= f.submit "Update Assignment" %>
@@ -88,33 +82,7 @@
 <% end %>
 
 <%
-  status_options = case current_user.role
-                   when "admin"
-                     @ticket.status == "resolved" ? [["Closed", "closed"]] : []
-                   when "engineer"
-                     if @ticket.assignee_id == current_user.id
-                       case @ticket.status
-                       when "open"
-                         [["In Progress", "in_progress"]]
-                       when "in_progress"
-                         [["Resolved", "resolved"]]
-                       else
-                         []
-                       end
-                     else
-                       []
-                     end
-                   when "requester"
-                     if @ticket.requester_id == current_user.id &&
-                        @ticket.status == "resolved"
-                       [["Reopen", "open"], ["Closed", "closed"]]
-                     else
-                       []
-                     end
-                   else
-                     []
-                   end
-%>
+  status_options =ticket_status_options(@ticket, current_user)%>
 
 <% if status_options.any? %>
   <hr>

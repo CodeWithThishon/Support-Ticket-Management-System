@@ -1,24 +1,31 @@
+
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>SupportTicketManagementSystem</title>
-    <%= csrf_meta_tags %>
-    <%= csp_meta_tag %>
+<head>
+  <title>Support Desk</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <%= csrf_meta_tags %>
+  <%= csp_meta_tag %>
+  <%= stylesheet_link_tag "application",
+                          media: "all",
+                          "data-turbolinks-track": "reload" %>
+  <%= javascript_pack_tag "application",
+                          "data-turbolinks-track": "reload" %>
+</head>
 
-    <%= stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track': 'reload' %>
-    <%= javascript_pack_tag 'application', 'data-turbolinks-track': 'reload' %>
-  </head>
+<body>
+<%= render "layouts/header" %>
 
-  <body>
-    <div class="container">
-      <% flash.each do |type, message| %>
-        <% alert_class = { "success" => "success", "danger" => "danger", "alert" => "warning", "notice" => "info" }.fetch(type.to_s, "info") %>
-        <div class="alert alert-<%= alert_class %>" role="alert">
-          <%= message %>
-        </div>
-      <% end %>
-
-    <%= yield %>
+<main class="container">
+  <% flash.each do |type, message| %>
+    <div class="alert alert-<%= type %>">
+      <%= message %>
     </div>
-  </body>
+  <% end %>
+
+  <%= yield %>
+</main>
+
+<%= render "layouts/footer" %>
+</body>
 </html>

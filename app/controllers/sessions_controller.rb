@@ -1,9 +1,8 @@
 class SessionsController < ApplicationController
-  skip_before_action :login_user, only: [:new, :create]
+  before_action :login_user, only: [:destroy]
 
   def new
   end
-
 
   def create
     user = User.find_by(email: params[:session][:email].to_s.strip.downcase)
@@ -25,5 +24,4 @@ class SessionsController < ApplicationController
     log_out if logged_in?
     redirect_to login_path
   end
-
 end

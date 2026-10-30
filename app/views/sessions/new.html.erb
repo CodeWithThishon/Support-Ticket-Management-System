@@ -3,12 +3,15 @@
 <%= form_with url: login_path, scope: :session, local: true do |f| %>
   <div>
     <%= f.label :email %>
-    <%= f.email_field :email, required: true %>
-  </div>
+    <%= f.email_field :email, placeholder: "Enter Your Email", required: true %>
 
+  </div>
+  <p>
+    <%= link_to "Forgot password?", new_password_reset_path %>
+  </p>
   <div>
     <%= f.label :password %>
-    <%= f.password_field :password, required: true %>
+    <%= f.password_field :password, placeholder: "Enter Your Password", required: true %>
   </div>
 
   <div>

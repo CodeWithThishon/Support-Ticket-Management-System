@@ -1,41 +1,54 @@
 
-<h1>Support Ticket Dashboard</h1>
+<% if logged_in? %>
+  <% if current_user.role == "admin" %>
+    <h1>Admin Dashboard</h1>
+<p>Total Tickets : <%=@total_tickets %></p>
+    <p>Unassigned Tickets: <%= @unassigned_tickets %></p>
 
-<div>
-  <h3>Total Tickets</h3>
-  <p><%= @total_tickets %></p>
-</div>
+  <% elsif current_user.role == "engineer" %>
+    <h1>Engineer Dashboard</h1>
+    <p>My Assigned Tickets: <%= @total_tickets %></p>
 
-<div>
-  <h3>Open Tickets</h3>
-  <p><%= @open_tickets %></p>
-</div>
+  <% elsif current_user.role == "requester" %>
+    <h1>My Support Dashboard</h1>
+    <p>My Tickets: <%= @total_tickets %></p>
+  <% end %>
 
-<div>
-  <h3>In Progress Tickets</h3>
-  <p><%= @in_progress_tickets %></p>
-</div>
-
-<div>
-  <h3>Resolved Tickets</h3>
-  <p><%= @resolved_tickets %></p>
-</div>
-
-<div>
-  <h3>Closed Tickets</h3>
-  <p><%= @closed_tickets %></p>
-</div>
-
-<div>
-  <h3>Unassigned Tickets</h3>
-  <p><%= @unassigned_tickets %></p>
-</div>
-
-<h2>Tickets Per Engineer</h2>
-
-<% @engineer_ticket_counts.each do |(engineer_id, engineer_name), count| %>
-  <div>
-    <p><%= engineer_name %>: <%= count %> tickets</p>
+  <div class="dashboard-stats">
+    <p>Open: <%= @open_tickets %></p>
+    <p>In Progress: <%= @in_progress_tickets %></p>
+    <p>Resolved: <%= @resolved_tickets %></p>
+    <p>Closed: <%= @closed_tickets %></p>
   </div>
+
+  <% else %>
+
+  <section class="hero">
+    <h1>Support Made Simple</h1>
+
+    <p>
+      Manage support requests, track progress, and resolve issues
+      efficiently with our Support Ticket Management System.
+    </p>
+
+    <%= link_to "Log In", login_path, class: "btn btn-primary" %>
+  </section>
+
+  <section class="features">
+    <div class="feature-card">
+      <h2>Track Tickets</h2>
+      <p>Monitor support requests and their status in one place.</p>
+    </div>
+
+    <div class="feature-card">
+      <h2>Manage Assignments</h2>
+      <p>Help engineers focus on their assigned support tickets.</p>
+    </div>
+
+    <div class="feature-card">
+      <h2>Track Progress</h2>
+      <p>Follow ticket updates from creation through resolution.</p>
+    </div>
+  </section>
+
 <% end %>
-<%= button_to "Log out", logout_path, method: :delete %>

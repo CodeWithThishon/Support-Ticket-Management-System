@@ -1,0 +1,25 @@
+
+<header class="site-header">
+  <div class="container">
+    <%= link_to "Support Desk", root_path, class: "logo" %>
+
+    <nav>
+      <% if logged_in? %>
+        <%= link_to "Tickets", tickets_path %>
+
+       <% if current_user.role == "requester" %>
+        <%= link_to "Create Ticket", new_ticket_path %>
+          <% end %>
+
+
+        <%= link_to "Log out", logout_path,method: :delete, data: { confirm: "Are you sure?" } %>
+
+      <% elsif current_page?(root_path) %>
+
+
+      <% else %>
+        <%= link_to "Home", root_path %>
+      <% end %>
+    </nav>
+  </div>
+</header>

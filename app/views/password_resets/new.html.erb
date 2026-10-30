@@ -1,0 +1,17 @@
+
+<h1>Forgot password</h1>
+
+<p>Enter your registered email address to receive a password reset link.</p>
+
+<%= form_with scope: :password_reset, url: password_resets_path, local: true do |f| %>
+  <div>
+    <%= f.label :email, "Email address" %>
+    <%= f.email_field :email, required: true, autofocus: true %>
+  </div>
+
+  <div>
+    <%= f.submit "Send password reset link" %>
+  </div>
+<% end %>
+
+<p><%= link_to "Back to login", login_path %></p>

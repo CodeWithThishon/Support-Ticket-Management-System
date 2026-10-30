@@ -1,87 +1,34 @@
 class TicketsController < ApplicationController
   before_action :require_requester, only: [:new, :create]
-
+  before_action :require_admin, only: [:assign, :update_priority]
 
   def index
-    @tickets =
-      case current_user.role
-      when "admin"
-        Ticket.all
-      when "engineer"
-        current_user.assigned_tickets
-      when "requester"
-        current_user.requested_tickets
-      else
-        Ticket.none
-      end
-
-    if params[:search].present?
-      search = "%#{params[:search].strip}%"
-      @tickets = @tickets.where(
-        "ticket_number ILIKE :search OR title ILIKE :search",
-        search: search
-      )
-    end
-
-    if params[:status].present? && Ticket::STATUSES.include?(params[:status])
-      @tickets = @tickets.where(status: params[:status])
-    end
-
-    if params[:priority].present? && Ticket::PRIORITIES.include?(params[:priority])
-      @tickets = @tickets.where(priority: params[:priority])
-    end
+    @tickets = Ticket.visible_to(current_user)
+                     .search(params[:search])
+                     .filter_by(params, admin: current_user.role == "admin")
+                     .ordered_by(params[:sort])
+                     .paginate(page: params[:page], per_page: 10)
 
     if current_user.role == "admin"
-      if params[:assignee_id].present?
-        @tickets = @tickets.where(assignee_id: params[:assignee_id])
-      end
-
-      if params[:requester_id].present?
-        @tickets = @tickets.where(requester_id: params[:requester_id])
-      end
-
-      if params[:unassigned] == "1"
-        @tickets = @tickets.where(assignee_id: nil)
-      end
+      @engineers = User.where(role: "engineer").order(:name)
+      @requesters = User.where(role: "requester").order(:name)
     end
-
-    case params[:sort]
-    when "oldest"
-      @tickets = @tickets.order(created_at: :asc)
-    when "priority"
-      @tickets = @tickets.order(
-        Arel.sql(
-          "CASE priority " \
-            "WHEN 'critical' THEN 1 " \
-            "WHEN 'high' THEN 2 " \
-            "WHEN 'medium' THEN 3 " \
-            "WHEN 'low' THEN 4 END"
-        )
-      )
-    when "updated"
-      @tickets = @tickets.order(updated_at: :desc)
-    else
-      @tickets = @tickets.order(created_at: :desc)
-    end
-
-    @engineers = User.where(role: "engineer").order(:name) if current_user.role == "admin"
-    @requesters = User.where(role: "requester").order(:name) if current_user.role == "admin"
   end
 
-
   def new
-     @ticket = Ticket.new
+    @ticket = Ticket.new
   end
 
   def show
-     @ticket = Ticket.find(params[:id])
+    @ticket = Ticket.includes(:requester, :assignee).find(params[:id])
 
-     unless view_tickets?(@ticket)
-       flash[:danger] = "Not Authorized"
-       redirect_to tickets_path
-     end
+    unless @ticket.visible_to?(current_user)
+      redirect_to tickets_path, alert: "Not authorized to view this ticket."
+      return
+    end
+
+    @engineers = User.where(role: "engineer").order(:name) if current_user.role == "admin"
   end
-
 
   def create
     @ticket = Ticket.new(ticket_params)
@@ -91,14 +38,12 @@ class TicketsController < ApplicationController
       Ticket.transaction do
         @ticket.save!
 
-        activity = TicketActivity.new(
+        TicketActivity.create!(
           ticket: @ticket,
           user: current_user,
           action: "created",
           details: "Ticket #{@ticket.ticket_number} was created"
         )
-
-        activity.save!
       end
 
       flash[:success] = "Ticket created!"
@@ -106,18 +51,12 @@ class TicketsController < ApplicationController
 
     rescue ActiveRecord::RecordInvalid
       flash[:danger] = "Ticket could not be created or its activity could not be logged."
-      render 'new'
+      render :new
     end
   end
 
   def assign
     @ticket = Ticket.find(params[:id])
-
-    unless current_user.role == "admin"
-      redirect_to ticket_path(@ticket),
-                  alert: "Only admins can assign tickets."
-      return
-    end
 
     assignee_id = params[:assignee_id]
     old_assignee_id = @ticket.assignee_id
@@ -200,15 +139,8 @@ class TicketsController < ApplicationController
     redirect_to ticket_path(@ticket)
   end
 
-
   def update_priority
     @ticket = Ticket.find(params[:id])
-
-    unless current_user.role == "admin"
-      flash[:danger] = "Only admins can change ticket priority."
-      redirect_to ticket_path(@ticket)
-      return
-    end
 
     new_priority = params[:priority]
     old_priority = @ticket.priority
@@ -246,24 +178,20 @@ class TicketsController < ApplicationController
   end
 
   private
-    def ticket_params
-      params.require(:ticket).permit(:title, :description, :priority)
-    end
 
-    def require_requester
-      return if current_user.role == "requester"
-      flash[:danger] = "Only Requesters can create tickets."
-      redirect_to tickets_path
-    end
+  def ticket_params
+    params.require(:ticket).permit(:title, :description, :priority)
+  end
 
-    def view_tickets?(ticket)
-      case current_user.role
-      when "admin"
-        true
-      when "engineer"
-        ticket.assignee_id == current_user.id
-      when "requester"
-        ticket.requester_id == current_user.id
-      end
-    end
+  def require_requester
+    return if current_user.role == "requester"
+
+    redirect_to tickets_path, alert: "Only requesters can create tickets."
+  end
+
+  def require_admin
+    return if current_user.role == "admin"
+
+    redirect_to ticket_path(params[:id]), alert: "Only admins can perform this action."
+  end
 end

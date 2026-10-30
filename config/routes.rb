@@ -1,6 +1,6 @@
 Rails.application.routes.draw do
-
   root "pages#home"
+
 
   get "/login", to: 'sessions#new'
   post "/login", to: 'sessions#create'
@@ -12,4 +12,6 @@ Rails.application.routes.draw do
     patch :update_status, on: :member
     patch :update_priority, on: :member
   end
+
+  resources :password_resets, only: [:new, :create, :edit, :update]
 end

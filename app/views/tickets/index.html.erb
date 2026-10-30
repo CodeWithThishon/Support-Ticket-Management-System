@@ -89,3 +89,4 @@
 <% else %>
   <p>No tickets found.</p>
 <% end %>
+<%= will_paginate @tickets, params: request.query_parameters %>
